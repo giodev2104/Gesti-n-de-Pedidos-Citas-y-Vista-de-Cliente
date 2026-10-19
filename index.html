@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller Ribera · Pedidos y servicios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { theme: { extend: {
+  fontFamily: { display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'], sans: ['"Instrument Sans"', 'system-ui', 'sans-serif'] },
+  colors: { ink: '#14232B', stone: '#ECF0EE', petrol: '#0F5C5A', petrolDark: '#0A4442', signal: '#F2B705' }
+} } }
+</script>
+<style>
+  body { background: #ECF0EE; color: #14232B; }
+  .shadow-soft { box-shadow: 0 1px 2px rgba(20,35,43,.06), 0 10px 28px -16px rgba(20,35,43,.25); }
+  .pop { animation: pop .25s ease-out; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+  .drag-over { outline: 2px dashed #0F5C5A; outline-offset: -4px; background: #e2efec; }
+  @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-ink/10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <span class="grid place-items-center w-9 h-9 rounded-xl bg-ink text-signal font-display font-extrabold">TR</span>
+      <span class="font-display font-bold text-lg hidden sm:block">Taller Ribera</span>
+    </div>
+    <div role="tablist" aria-label="Cambiar vista" class="flex bg-stone rounded-full p-1 text-sm font-semibold">
+      <button id="tab-client" role="tab" class="px-4 sm:px-5 py-2 rounded-full transition">Vista cliente</button>
+      <button id="tab-admin" role="tab" class="px-4 sm:px-5 py-2 rounded-full transition">Administración <span id="badge" class="ml-1 text-xs bg-signal text-ink rounded-full px-1.5 py-0.5"></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= VISTA CLIENTE ================= -->
+<main id="view-client" class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <div class="mb-6">
+    <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight">Reserva tu servicio</h1>
+    <p class="text-ink/70 mt-1">Elige qué necesita tu coche, reserva día y hora, y recibe tu número de seguimiento al instante.</p>
+  </div>
+  <div class="lg:grid lg:grid-cols-[1fr_360px] lg:gap-8 items-start">
+    <form id="orderForm" class="space-y-6" novalidate>
+      <section class="bg-white rounded-2xl p-5 shadow-soft">
+        <h2 class="font-display font-bold text-xl mb-4">1. Servicio</h2>
+        <div id="services" class="grid sm:grid-cols-2 gap-3"></div>
+      </section>
+      <section class="bg-white rounded-2xl p-5 shadow-soft">
+        <h2 class="font-display font-bold text-xl mb-4">2. Fecha y hora</h2>
+        <label for="date" class="text-sm font-semibold">Día</label>
+        <input id="date" type="date" required class="block mt-1.5 w-full sm:w-60 rounded-lg border border-ink/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol">
+        <p class="text-sm font-semibold mt-4 mb-2">Hora disponible</p>
+        <div id="slots" class="grid grid-cols-3 sm:grid-cols-6 gap-2"></div>
+      </section>
+      <section class="bg-white rounded-2xl p-5 shadow-soft">
+        <h2 class="font-display font-bold text-xl mb-4">3. Tus datos</h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div><label for="name" class="text-sm font-semibold">Nombre completo</label>
+            <input id="name" required autocomplete="name" class="mt-1.5 w-full rounded-lg border border-ink/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol"></div>
+          <div><label for="phone" class="text-sm font-semibold">Teléfono</label>
+            <input id="phone" type="tel" required autocomplete="tel" class="mt-1.5 w-full rounded-lg border border-ink/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol"></div>
+          <div><label for="plate" class="text-sm font-semibold">Matrícula</label>
+            <input id="plate" required placeholder="1234 ABC" class="mt-1.5 w-full rounded-lg border border-ink/20 px-3 py-2.5 uppercase focus:outline-none focus:ring-2 focus:ring-petrol"></div>
+          <div><label for="car" class="text-sm font-semibold">Marca y modelo</label>
+            <input id="car" required placeholder="Seat León 2018" class="mt-1.5 w-full rounded-lg border border-ink/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol"></div>
+          <div class="sm:col-span-2"><label for="notes" class="text-sm font-semibold">Notas (opcional)</label>
+            <textarea id="notes" rows="2" placeholder="Ruidos, avisos en el cuadro, preferencias…" class="mt-1.5 w-full rounded-lg border border-ink/20 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol"></textarea></div>
+        </div>
+      </section>
+    </form>
+
+    <aside class="mt-6 lg:mt-0 lg:sticky lg:top-24 space-y-6">
+      <div class="bg-ink text-white rounded-2xl p-5 shadow-soft">
+        <h2 class="font-display font-bold text-xl">Resumen</h2>
+        <dl id="summary" class="mt-4 space-y-3 text-sm"></dl>
+        <button id="confirm" form="orderForm" type="submit" class="mt-5 w-full rounded-xl bg-signal text-ink font-bold py-3.5 hover:brightness-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-white transition">Confirmar pedido</button>
+      </div>
+      <div id="confirmation" class="hidden"></div>
+      <div class="bg-white rounded-2xl p-5 shadow-soft">
+        <h2 class="font-display font-bold text-xl">Seguir mi pedido</h2>
+        <form id="trackForm" class="mt-3 flex gap-2">
+          <input id="trackRef" placeholder="TR-2026-0001" aria-label="Número de seguimiento" class="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2.5 uppercase focus:outline-none focus:ring-2 focus:ring-petrol">
+          <button class="rounded-lg bg-petrol text-white font-semibold px-4 hover:bg-petrolDark">Buscar</button>
+        </form>
+        <div id="trackResult" class="mt-4" aria-live="polite"></div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<!-- ================= VISTA ADMINISTRACIÓN ================= -->
+<main id="view-admin" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+    <div>
+      <h1 class="font-display font-extrabold text-3xl sm:text-4xl tracking-tight">Panel de pedidos</h1>
+      <p class="text-ink/70 mt-1 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Sincronizado en vivo con la vista cliente</p>
+    </div>
+    <button id="reset" class="text-sm font-semibold rounded-lg border border-ink/20 bg-white px-4 py-2 hover:bg-stone">Restaurar datos de ejemplo</button>
+  </div>
+  <div id="metrics" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+  <div class="mt-6 flex flex-wrap gap-3 items-center">
+    <input id="fq" type="search" placeholder="Buscar por referencia, cliente o matrícula" aria-label="Buscar pedidos" class="flex-1 min-w-[220px] rounded-lg border border-ink/20 bg-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol">
+    <select id="fs" aria-label="Filtrar por estado" class="rounded-lg border border-ink/20 bg-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-petrol"></select>
+    <div class="flex bg-white rounded-lg p-1 text-sm font-semibold shadow-soft" role="group" aria-label="Tipo de vista">
+      <button id="m-table" class="px-4 py-1.5 rounded-md">Tabla</button>
+      <button id="m-kanban" class="px-4 py-1.5 rounded-md">Kanban</button>
+    </div>
+  </div>
+  <div id="board" class="mt-4"></div>
+</main>
+
+<div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-ink text-white text-sm font-semibold rounded-full px-5 py-3 shadow-xl" role="status"></div>
+
+<script>
+/* ============ UTILIDADES ============ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const eur = n => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const TODAY = iso(new Date());
+const fmtDate = s => new Date(s + 'T12:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+const toast = msg => { const t = $('toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.add('hidden'), 2600); };
+
+/* ============ CATÁLOGO Y ESTADOS ============ */
+const SERVICES = [
+  { id: 'aceite', icon: '🛢️', name: 'Cambio de aceite y filtros', desc: 'Aceite sintético, filtros y revisión de niveles.', price: 89, dur: '45 min' },
+  { id: 'iti', icon: '🔍', name: 'Revisión pre-ITV', desc: 'Frenos, luces, emisiones y holguras antes de pasar la ITV.', price: 45, dur: '30 min' },
+  { id: 'frenos', icon: '🔧', name: 'Cambio de pastillas de freno', desc: 'Eje delantero o trasero, mano de obra incluida.', price: 129, dur: '1 h 15 min' },
+  { id: 'neumaticos', icon: '🛞', name: 'Neumáticos y alineación', desc: 'Montaje, equilibrado y alineación de dirección.', price: 69, dur: '1 h' },
+  { id: 'clima', icon: '❄️', name: 'Recarga de aire acondicionado', desc: 'Recarga de gas, desinfección y control de fugas.', price: 75, dur: '50 min' },
+  { id: 'lavado', icon: '🚿', name: 'Lavado completo interior y exterior', desc: 'Aspirado, tapicería, cera y llantas.', price: 35, dur: '1 h' },
+];
+const STATUS = ['En proceso', 'En preparación', 'Completado'];
+const SC = {
+  'En proceso': { chip: 'bg-signal/25 text-amber-900', dot: 'bg-signal' },
+  'En preparación': { chip: 'bg-sky-100 text-sky-900', dot: 'bg-sky-500' },
+  'Completado': { chip: 'bg-emerald-100 text-emerald-900', dot: 'bg-emerald-500' },
+};
+const SLOTS = ['09:00', '10:00', '11:00', '12:00', '16:00', '17:00'];
+const CAPACITY = 2; // pedidos máximos por hueco
+const svc = id => SERVICES.find(s => s.id === id);
+
+/* ============ ESTADO GLOBAL (con persistencia y sincronización entre pestañas) ============ */
+const KEY = 'tallerRibera.v1';
+const mkRef = n => `TR-${new Date().getFullYear()}-${String(n).padStart(4, '0')}`;
+function seed() {
+  const day = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+  const o = (n, name, phone, plate, car, sv, off, time, status, notes = '') => ({
+    ref: mkRef(n), name, phone, plate, car, service: sv, price: svc(sv).price, date: day(off), time, status, notes,
+    created: Date.now() - (9 - n) * 3600e3, completedAt: status === 'Completado' ? Date.now() - n * 60e3 : null });
+  return { seq: 9, orders: [
+    o(1, 'Lucía Fernández', '611 222 333', '4821 KLM', 'Seat León 2018', 'aceite', 0, '09:00', 'Completado'),
+    o(2, 'Marcos Ortega', '622 444 555', '7710 HTR', 'Renault Clio 2020', 'lavado', 0, '10:00', 'Completado'),
+    o(3, 'Ana Beltrán', '633 111 999', '2204 PFD', 'Toyota Yaris 2021', 'frenos', 0, '11:00', 'En preparación', 'Chirrido al frenar.'),
+    o(4, 'Javier Prieto', '644 876 123', '9033 GZC', 'Ford Focus 2016', 'iti', 0, '12:00', 'En preparación'),
+    o(5, 'Carmen Soler', '655 321 654', '1157 LBN', 'Kia Sportage 2022', 'clima', 1, '09:00', 'En proceso'),
+    o(6, 'Pablo Nieto', '666 777 888', '6642 DKS', 'VW Golf 2017', 'neumaticos', 1, '10:00', 'En proceso', 'Dirección algo torcida.'),
+    o(7, 'Elena Ruiz', '677 909 010', '3085 MNV', 'Dacia Sandero 2023', 'aceite', 2, '16:00', 'En proceso'),
+    o(8, 'Sergio Molina', '688 202 303', '5519 WJR', 'BMW Serie 1 2019', 'iti', 2, '17:00', 'En proceso'),
+  ] };
+}
+function load() { try { const r = JSON.parse(localStorage.getItem(KEY)); if (r && r.orders) return r; } catch (e) {} return seed(); }
+let state = load();
+const ui = { view: 'client', q: '', st: '', mode: 'table', svc: null, slot: null };
+function commit() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} renderAll(); }
+addEventListener('storage', e => { if (e.key === KEY) { state = load(); renderAll(); } });
+
+function setStatus(ref, status) {
+  const o = state.orders.find(x => x.ref === ref);
+  if (!o || o.status === status) return;
+  o.status = status; o.completedAt = status === 'Completado' ? Date.now() : null;
+  commit(); toast(`${ref} → ${status}`);
+}
+
+/* ============ VISTA CLIENTE ============ */
+function renderServices() {
+  $('services').innerHTML = SERVICES.map(s => {
+    const on = ui.svc === s.id;
+    return `<button type="button" data-svc="${s.id}" aria-pressed="${on}" class="text-left rounded-xl border-2 p-4 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-petrol ${on ? 'border-petrol bg-petrol/5' : 'border-ink/10 hover:border-ink/30'}">
+      <div class="flex items-start justify-between gap-2"><span class="text-2xl" aria-hidden="true">${s.icon}</span><span class="font-display font-extrabold text-lg text-petrol">${eur(s.price)}</span></div>
+      <p class="font-semibold mt-2">${s.name}</p><p class="text-sm text-ink/65 mt-0.5">${s.desc}</p><p class="text-xs text-ink/50 mt-2">Duración aprox. ${s.dur}</p></button>`;
+  }).join('');
+}
+function renderSlots() {
+  const date = $('date').value;
+  $('slots').innerHTML = SLOTS.map(t => {
+    const taken = state.orders.filter(o => o.date === date && o.time === t).length >= CAPACITY;
+    const on = ui.slot === t && !taken;
+    return `<button type="button" data-slot="${t}" ${taken ? 'disabled' : ''} aria-pressed="${on}" class="rounded-lg border-2 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-petrol ${taken ? 'border-ink/5 bg-stone text-ink/30 line-through cursor-not-allowed' : on ? 'border-petrol bg-petrol text-white' : 'border-ink/10 hover:border-petrol'}">${t}</button>`;
+  }).join('');
+}
+function renderSummary() {
+  const s = svc(ui.svc), date = $('date').value;
+  const row = (k, v) => `<div class="flex justify-between gap-4"><dt class="text-white/60">${k}</dt><dd class="font-semibold text-right">${v}</dd></div>`;
+  $('summary').innerHTML = row('Servicio', s ? s.name : '—') + row('Día', date ? fmtDate(date) : '—') + row('Hora', ui.slot || '—')
+    + `<div class="flex justify-between items-baseline border-t border-white/15 pt-3"><dt class="text-white/60">Total</dt><dd class="font-display font-extrabold text-3xl text-signal">${s ? eur(s.price) : '—'}</dd></div>`;
+}
+$('services').addEventListener('click', e => { const b = e.target.closest('[data-svc]'); if (b) { ui.svc = b.dataset.svc; renderServices(); renderSummary(); } });
+$('slots').addEventListener('click', e => { const b = e.target.closest('[data-slot]'); if (b && !b.disabled) { ui.slot = b.dataset.slot; renderSlots(); renderSummary(); } });
+$('date').addEventListener('change', () => { ui.slot = null; renderSlots(); renderSummary(); });
+
+$('orderForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim();
+  if (!ui.svc) return toast('Elige un servicio');
+  if (!v('date') || !ui.slot) return toast('Selecciona día y hora');
+  if (!v('name') || !v('phone') || !v('plate') || !v('car')) return toast('Completa tus datos de contacto');
+  const order = { ref: mkRef(state.seq), name: v('name'), phone: v('phone'), plate: v('plate').toUpperCase(), car: v('car'), service: ui.svc,
+    price: svc(ui.svc).price, date: v('date'), time: ui.slot, status: 'En proceso', notes: v('notes'), created: Date.now(), completedAt: null };
+  state.seq++; state.orders.unshift(order); commit();
+  $('confirmation').className = 'pop bg-emerald-50 border border-emerald-200 rounded-2xl p-5';
+  $('confirmation').innerHTML = `<p class="font-semibold text-emerald-900">Pedido confirmado</p>
+    <p class="font-display font-extrabold text-3xl mt-1 tracking-tight">${order.ref}</p>
+    <p class="text-sm text-emerald-900/80 mt-1">Estado: En proceso. Te esperamos el ${fmtDate(order.date)} a las ${order.time}.</p>
+    <button type="button" id="goTrack" class="mt-3 text-sm font-semibold text-petrol underline">Ver seguimiento</button>`;
+  $('goTrack').onclick = () => { $('trackRef').value = order.ref; showTrack(order.ref); };
+  $('orderForm').reset(); $('date').value = TODAY; ui.svc = null; ui.slot = null;
+  renderServices(); renderSlots(); renderSummary(); toast('Pedido ' + order.ref + ' creado');
+});
+
+function showTrack(ref) {
+  const o = state.orders.find(x => x.ref === ref.trim().toUpperCase());
+  if (!o) { $('trackResult').innerHTML = `<p class="text-sm text-red-700">No encontramos ese número. Revisa el formato, por ejemplo TR-2026-0001.</p>`; return; }
+  const idx = STATUS.indexOf(o.status);
+  $('trackResult').innerHTML = `<div class="pop"><p class="font-semibold">${svc(o.service).name}</p><p class="text-sm text-ink/60">${esc(o.car)} · ${fmtDate(o.date)}, ${o.time}</p>
+    <ol class="mt-4 space-y-3">${STATUS.map((s, i) => `<li class="flex items-center gap-3 text-sm ${i <= idx ? 'font-semibold' : 'text-ink/40'}">
+      <span class="grid place-items-center w-6 h-6 rounded-full text-xs ${i < idx ? 'bg-petrol text-white' : i === idx ? 'bg-signal text-ink ring-4 ring-signal/30' : 'bg-stone'}">${i < idx ? '✓' : i + 1}</span>${s}</li>`).join('')}</ol></div>`;
+}
+$('trackForm').addEventListener('submit', e => { e.preventDefault(); showTrack($('trackRef').value); });
+
+/* ============ VISTA ADMINISTRACIÓN ============ */
+const chip = s => `<span class="inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-2.5 py-1 ${SC[s].chip}"><span class="w-1.5 h-1.5 rounded-full ${SC[s].dot}"></span>${s}</span>`;
+function renderMetrics() {
+  const os = state.orders, done = os.filter(o => o.status === 'Completado');
+  const isToday = o => o.completedAt && iso(new Date(o.completedAt)) === TODAY;
+  const income = done.filter(isToday).reduce((a, o) => a + o.price, 0);
+  const pending = os.filter(o => o.status !== 'Completado');
+  const cards = [
+    ['Total pedidos', os.length, 'registrados', 'bg-white'],
+    ['Pendientes', pending.length, `${os.filter(o => o.status === 'En proceso').length} sin empezar`, 'bg-white'],
+    ['Completados', done.length, `${os.length ? Math.round(done.length / os.length * 100) : 0} % del total`, 'bg-white'],
+    ['Ingresos del día', eur(income), `${eur(pending.reduce((a, o) => a + o.price, 0))} por cobrar`, 'bg-ink text-white'],
+  ];
+  $('metrics').innerHTML = cards.map(([l, v, sub, bg]) => `<div class="${bg} rounded-2xl p-5 shadow-soft"><p class="text-sm ${bg.includes('ink') ? 'text-white/65' : 'text-ink/60'}">${l}</p>
+    <p class="font-display font-extrabold text-3xl sm:text-4xl mt-1 ${bg.includes('ink') ? 'text-signal' : ''}">${v}</p><p class="text-xs mt-1 ${bg.includes('ink') ? 'text-white/55' : 'text-ink/50'}">${sub}</p></div>`).join('');
+  const n = pending.length; $('badge').textContent = n || ''; $('badge').classList.toggle('hidden', !n);
+}
+const filtered = () => state.orders.filter(o => (!ui.st || o.status === ui.st)
+  && (!ui.q || [o.ref, o.name, o.plate, o.car].join(' ').toLowerCase().includes(ui.q.toLowerCase())));
+
+function renderBoard() {
+  const list = filtered();
+  $('m-table').className = 'px-4 py-1.5 rounded-md ' + (ui.mode === 'table' ? 'bg-ink text-white' : '');
+  $('m-kanban').className = 'px-4 py-1.5 rounded-md ' + (ui.mode === 'kanban' ? 'bg-ink text-white' : '');
+  if (!list.length) { $('board').innerHTML = `<div class="bg-white rounded-2xl p-10 text-center shadow-soft"><p class="font-display font-bold text-xl">No hay pedidos con estos filtros</p><p class="text-ink/60">Cambia la búsqueda o el estado seleccionado.</p></div>`; return; }
+  if (ui.mode === 'table') {
+    $('board').innerHTML = `<div class="bg-white rounded-2xl shadow-soft overflow-x-auto"><table class="w-full text-sm min-w-[820px]">
+      <thead class="text-left text-ink/55 border-b border-ink/10"><tr>${['Referencia', 'Cliente', 'Servicio', 'Cita', 'Importe', 'Estado'].map(h => `<th class="px-4 py-3 font-semibold">${h}</th>`).join('')}</tr></thead>
+      <tbody>${list.map(o => `<tr class="border-b border-ink/5 last:border-0 hover:bg-stone/60">
+        <td class="px-4 py-3 font-semibold whitespace-nowrap">${o.ref}</td>
+        <td class="px-4 py-3"><p class="font-semibold">${esc(o.name)}</p><p class="text-xs text-ink/55">${esc(o.car)} · ${esc(o.plate)}</p></td>
+        <td class="px-4 py-3">${svc(o.service).name}${o.notes ? `<p class="text-xs text-ink/55 max-w-[220px] truncate" title="${esc(o.notes)}">${esc(o.notes)}</p>` : ''}</td>
+        <td class="px-4 py-3 whitespace-nowrap">${fmtDate(o.date)}, ${o.time}</td>
+        <td class="px-4 py-3 font-semibold">${eur(o.price)}</td>
+        <td class="px-4 py-3"><div class="flex items-center gap-2">${chip(o.status)}
+          <select data-ref="${o.ref}" aria-label="Cambiar estado de ${o.ref}" class="stsel rounded-md border border-ink/20 bg-white text-xs px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-petrol">${STATUS.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div></td></tr>`).join('')}</tbody></table></div>`;
+  } else {
+    $('board').innerHTML = `<div class="grid md:grid-cols-3 gap-4">${STATUS.map((s, si) => {
+      const col = list.filter(o => o.status === s);
+      return `<section data-col="${s}" class="col bg-white/60 rounded-2xl p-3 min-h-[200px]"><h3 class="flex items-center justify-between px-2 py-1.5 font-display font-bold">${chip(s)}<span class="text-sm text-ink/50">${col.length}</span></h3>
+        <div class="space-y-3 mt-2">${col.map(o => `<article draggable="true" data-ref="${o.ref}" class="card bg-white rounded-xl p-4 shadow-soft cursor-grab active:cursor-grabbing">
+          <div class="flex justify-between gap-2"><p class="font-semibold text-sm">${o.ref}</p><p class="font-display font-bold text-petrol">${eur(o.price)}</p></div>
+          <p class="mt-1 font-semibold">${esc(o.name)}</p><p class="text-sm text-ink/65">${svc(o.service).name}</p>
+          <p class="text-xs text-ink/50 mt-1">${esc(o.car)} · ${fmtDate(o.date)}, ${o.time}</p>
+          <div class="flex gap-2 mt-3">${si > 0 ? `<button data-move="${STATUS[si - 1]}" data-ref="${o.ref}" class="mv text-xs font-semibold rounded-lg border border-ink/20 px-3 py-1.5 hover:bg-stone">Atrás</button>` : ''}
+          ${si < 2 ? `<button data-move="${STATUS[si + 1]}" data-ref="${o.ref}" class="mv flex-1 text-xs font-semibold rounded-lg bg-petrol text-white px-3 py-1.5 hover:bg-petrolDark">${si === 0 ? 'Pasar a preparación' : 'Marcar completado'}</button>` : ''}</div></article>`).join('') || '<p class="text-sm text-ink/40 px-2 py-6 text-center">Arrastra un pedido aquí</p>'}</div></section>`;
+    }).join('')}</div>`;
+  }
+}
+$('board').addEventListener('change', e => { if (e.target.classList.contains('stsel')) setStatus(e.target.dataset.ref, e.target.value); });
+$('board').addEventListener('click', e => { const b = e.target.closest('.mv'); if (b) setStatus(b.dataset.ref, b.dataset.move); });
+$('board').addEventListener('dragstart', e => { const c = e.target.closest('.card'); if (c) e.dataTransfer.setData('text/plain', c.dataset.ref); });
+$('board').addEventListener('dragover', e => { const c = e.target.closest('.col'); if (c) { e.preventDefault(); c.classList.add('drag-over'); } });
+$('board').addEventListener('dragleave', e => { const c = e.target.closest('.col'); if (c) c.classList.remove('drag-over'); });
+$('board').addEventListener('drop', e => { const c = e.target.closest('.col'); if (c) { e.preventDefault(); setStatus(e.dataTransfer.getData('text/plain'), c.dataset.col); } });
+
+$('fs').innerHTML = '<option value="">Todos los estados</option>' + STATUS.map(s => `<option>${s}</option>`).join('');
+$('fq').addEventListener('input', e => { ui.q = e.target.value; renderBoard(); });
+$('fs').addEventListener('change', e => { ui.st = e.target.value; renderBoard(); });
+$('m-table').onclick = () => { ui.mode = 'table'; renderBoard(); };
+$('m-kanban').onclick = () => { ui.mode = 'kanban'; renderBoard(); };
+$('reset').onclick = () => { if (confirm('¿Restaurar los pedidos de ejemplo? Se perderán los pedidos creados.')) { state = seed(); commit(); toast('Datos restaurados'); } };
+
+/* ============ NAVEGACIÓN Y ARRANQUE ============ */
+function setView(v) {
+  ui.view = v; location.hash = v === 'admin' ? 'admin' : '';
+  $('view-client').classList.toggle('hidden', v !== 'client');
+  $('view-admin').classList.toggle('hidden', v !== 'admin');
+  const on = 'bg-ink text-white shadow', off = 'text-ink/70 hover:text-ink';
+  $('tab-client').className = 'px-4 sm:px-5 py-2 rounded-full transition ' + (v === 'client' ? on : off);
+  $('tab-admin').className = 'px-4 sm:px-5 py-2 rounded-full transition ' + (v === 'admin' ? on : off);
+  $('tab-client').setAttribute('aria-selected', v === 'client'); $('tab-admin').setAttribute('aria-selected', v === 'admin');
+  scrollTo(0, 0);
+}
+$('tab-client').onclick = () => setView('client');
+$('tab-admin').onclick = () => setView('admin');
+function renderAll() { renderMetrics(); renderBoard(); renderSlots(); if ($('trackRef').value) showTrack($('trackRef').value); }
+
+$('date').min = TODAY; $('date').value = TODAY;
+renderServices(); renderSummary(); renderAll();
+setView(location.hash === '#admin' ? 'admin' : 'client');
+</script>
+</body>
+</html>
